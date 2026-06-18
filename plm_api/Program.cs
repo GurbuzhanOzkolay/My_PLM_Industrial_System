@@ -3,6 +3,17 @@ using plm_api;
 
 var builder = WebApplication.CreateBuilder(args);
 
+//  CORS Servis İzni
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 // Controllers
 builder.Services.AddControllers();
 
@@ -23,6 +34,9 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
-app.MapControllers();
+// 🔥 2. BURAYA EKLEDİK: CORS Aktif Etme (UseStaticFiles civarı)
+app.UseCors();
 
+app.MapControllers();
+app.UseStaticFiles(); // Resimlerin URL üzerinden açılabilmesini sağlar
 app.Run();

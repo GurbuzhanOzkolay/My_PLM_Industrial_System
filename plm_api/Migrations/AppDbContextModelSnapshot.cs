@@ -22,38 +22,19 @@ namespace plm_api.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Products", b =>
+            modelBuilder.Entity("CategoryProducts", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("CategoriesId")
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("CategoryId")
+                    b.Property<int>("ProductsId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Ingredients")
-                        .HasColumnType("nvarchar(max)");
+                    b.HasKey("CategoriesId", "ProductsId");
 
-                    b.Property<int>("MinStokValue")
-                        .HasColumnType("int");
+                    b.HasIndex("ProductsId");
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("ProductName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Stt_Date")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
-
-                    b.ToTable("Products");
+                    b.ToTable("CategoryProducts");
                 });
 
             modelBuilder.Entity("plm_api.Category", b =>
@@ -78,14 +59,71 @@ namespace plm_api.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("Products", b =>
+            modelBuilder.Entity("plm_api.ProductItem", b =>
                 {
-                    b.HasOne("plm_api.Category", "Category")
-                        .WithMany("Products")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                    b.Navigation("Category");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ChildProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ParentProductId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChildProductId");
+
+                    b.HasIndex("ParentProductId");
+
+                    b.ToTable("ProductItems");
+                });
+
+            modelBuilder.Entity("plm_api.Products", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("MinStokValue")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Stt_Date")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("CategoryProducts", b =>
+                {
+                    b.HasOne("plm_api.Category", null)
+                        .WithMany()
+                        .HasForeignKey("CategoriesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("plm_api.Products", null)
+                        .WithMany()
+                        .HasForeignKey("ProductsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("plm_api.Category", b =>
@@ -98,11 +136,28 @@ namespace plm_api.Migrations
                     b.Navigation("Parent");
                 });
 
+            modelBuilder.Entity("plm_api.ProductItem", b =>
+                {
+                    b.HasOne("plm_api.Products", "ChildProduct")
+                        .WithMany()
+                        .HasForeignKey("ChildProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("plm_api.Products", "ParentProduct")
+                        .WithMany()
+                        .HasForeignKey("ParentProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ChildProduct");
+
+                    b.Navigation("ParentProduct");
+                });
+
             modelBuilder.Entity("plm_api.Category", b =>
                 {
                     b.Navigation("Children");
-
-                    b.Navigation("Products");
                 });
 #pragma warning restore 612, 618
         }

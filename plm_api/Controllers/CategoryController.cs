@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
+using System.Net.Http.Headers;
+using plm_api;
 namespace plm_api.Controllers
 {
     [Route("api/[controller]")]
@@ -46,23 +48,7 @@ namespace plm_api.Controllers
             return Ok("Kategori silindi");
         }
 
-        // TREE (opsiyonel ama çok önemli)
-        [HttpGet("tree")]
-        public IActionResult GetTree()
-        {
-            var categories = _context.Categories.ToList();
 
-            var tree = categories
-                .Where(x => x.ParentId == null)
-                .Select(x => new
-                {
-                    x.Id,
-                    x.Name,
-                    Children = GetChildren(categories, x.Id)
-                });
-
-            return Ok(tree);
-        }
 
         private List<object> GetChildren(List<Category> categories, int parentId)
         {
@@ -77,5 +63,43 @@ namespace plm_api.Controllers
                 .Cast<object>()
                 .ToList();
         }
+        // PUT: kategori adını güncelle
+        [HttpPut("update-name")]
+        public IActionResult UpdateCategoryName([FromBody] CategoryUpdateNameDto updateDto)
+        {
+            
+            if (updateDto == null)
+            {
+                return BadRequest("İstek verisi boş olamaz.");
+            }
+            var category = _context.Categories.FirstOrDefault(x => x.Id == updateDto.Id);
+            if (category == null)
+            {
+                return NotFound(new { Message = "Güncellenmek istenen kategori bulunamadı" });
+            }
+            category.Name = updateDto.NewName;
+            _context.SaveChanges();
+            return Ok(new
+            {
+                Message = "Kategori adı başarıyla güncellendi.",
+                CategoryId = category.Id,
+                UpdatedName = category.Name
+            });
+        } 
+
+
+
+
+
+
     }
 }
+   
+ 
+
+    
+
+
+
+
+

@@ -1,137 +1,6 @@
-﻿/*using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-
-namespace plm_api.Controllers
-{
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ProductsController : ControllerBase
-    {
-
-
-        [HttpGet(Name = "GetProducts")]
-        public ProductsInfo Get()
-        {
-            ProductsInfo product = new ProductsInfo();
-            product.ProductName = "çikolata";
-            product.MinStokValue= 0;
-            product.Stt_Date = DateTime.Now.AddDays(30);
-            product.Id = 1;
-            product.Price = 20;
-            return product;
-        }
-        [HttpPost(Name = "PostProducts")]
-        public string Post(string name)
-        {
-            return " "+name;
-        }
-    }
-}
-*/
-
-
-
-/*using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
-namespace plm_api.Controllers
-{
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ProductsController : ControllerBase
-    {
-        // MEMORY DATABASE (geçici liste)
-        private static List<ProductsInfo> products = new List<ProductsInfo>();
-
-        // =========================
-        // GET: tüm ürünleri getir
-        // =========================
-        [HttpGet]
-        public IActionResult Get()
-        {
-            return Ok(products);
-        }
-
-        // =========================
-        // GET: tek ürün getir (id ile)
-        // =========================
-        [HttpGet("{id}")]
-        public IActionResult GetById(int id)
-        {
-            var product = products.FirstOrDefault(x => x.Id == id);
-
-            if (product == null)
-                return NotFound("Ürün bulunamadı");
-
-            return Ok(product);
-        }
-
-        // =========================
-        // POST: ürün ekle
-        // =========================
-        [HttpPost]
-        public IActionResult AddProduct(ProductsInfo product)
-        {
-            products.Add(product);
-            return Ok(product);
-        }
-
-        // =========================
-        // PUT: ürün güncelle
-        // =========================
-        [HttpPut("{id}")]
-        public IActionResult UpdateProduct(int id, ProductsInfo updatedProduct)
-        {
-            var product = products.FirstOrDefault(x => x.Id == id);
-
-            if (product == null)
-                return NotFound("Ürün bulunamadı");
-
-            product.ProductName = updatedProduct.ProductName;
-            product.Price = updatedProduct.Price;
-            product.MinStokValue = updatedProduct.MinStokValue;
-            product.Stt_Date = updatedProduct.Stt_Date;
-
-            return Ok(product);
-        }
-
-        // =========================
-        // DELETE: ürün sil
-        // =========================
-        [HttpDelete("{id}")]
-        public IActionResult DeleteProduct(int id)
-        {
-            var product = products.FirstOrDefault(x => x.Id == id);
-
-            if (product == null)
-                return NotFound("Ürün bulunamadı");
-
-            products.Remove(product);
-
-            return Ok("Ürün silindi");
-        }
-    }
-}
-*/
-
-/*--------------------------------------------------------------
-/*--------------------------------------------------------------
-/*--------------------------------------------------------------
-/*--------------------------------------------------------------
-/*--------------------------------------------------------------
-/*--------------------------------------------------------------
-/*--------------------------------------------------------------
-/*--------------------------------------------------------------
-/*--------------------------------------------------------------
-/*--------------------------------------------------------------
-/*--------------------------------------------------------------
-/*--------------------------------------------------------------
-/*--------------------------------------------------------------
-/*--------------------------------------------------------------
-
- */
-//MSSQL Sistemine aktardıktan sonra controller kodlarımız(Artık verilerimiz kalıcı)
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using plm_api.Dtos;
 
 namespace plm_api.Controllers
 {
@@ -141,7 +10,6 @@ namespace plm_api.Controllers
     {
         private readonly AppDbContext _context;
 
-        // Constructor (Dependency Injection)
         public ProductsController(AppDbContext context)
         {
             _context = context;
@@ -153,8 +21,21 @@ namespace plm_api.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            var products = _context.Products.ToList();
-            return Ok(products);
+            var products = _context.Products
+                .Include(x => x.Categories)
+                .ToList();
+
+            var result = products.Select(p => new
+            {
+                p.Id,
+                p.ProductName,
+                p.Price,
+                p.Stt_Date,
+                p.MinStokValue,
+                Categories = p.Categories.Select(c => new { c.Id, c.Name })
+            });
+
+            return Ok(result);
         }
 
         // =========================
@@ -163,62 +44,64 @@ namespace plm_api.Controllers
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
         {
-            var product = _context.Products.FirstOrDefault(x => x.Id == id);
-
-            if (product == null)
-                return NotFound("Ürün bulunamadı");
-
-            return Ok(product);
-        }
-        //ÜRÜN İÇERİĞİ ÇEKME 
-        [HttpGet("ingredients")]
-        public IActionResult GetIngredients()
-        {
-            var result = _context.Products
-                .Select(x => new ProductIngredientsDto
-                {
-                    ProductName = x.ProductName,
-                    Ingredients = x.Ingredients
-                })
-                .ToList();
-
-            return Ok(result);
-        }
-        //İD NUMBER A GÖRE İÇİNDEKİLER KISMINI ÇEKMEK 
-        [HttpGet("{id}/ingredients")]
-        public IActionResult GetIngredientsById(int id)
-        {
             var product = _context.Products
-                .Where(x => x.Id == id)
-                .Select(x => new
-                {
-                    x.Id,
-                    x.ProductName,
-                    x.Ingredients
-                })
-                .FirstOrDefault();
+                .Include(x => x.Categories)
+                .FirstOrDefault(x => x.Id == id);
 
             if (product == null)
                 return NotFound("Ürün bulunamadı");
 
-            return Ok(product);
+            return Ok(new
+            {
+                product.Id,
+                product.ProductName,
+                product.Price,
+                product.Stt_Date,
+                product.MinStokValue,
+                Categories = product.Categories.Select(c => new { c.Id, c.Name })
+            });
         }
 
         // =========================
         // POST: ürün ekle
         // =========================
+        [HttpPost]
+        public IActionResult AddProduct(ProductCreateDto dto)
+        {
+            var product = new Products
+            {
+                ProductName = dto.ProductName,
+                Price = dto.Price,
+                Stt_Date = dto.Stt_Date,
+                MinStokValue = dto.MinStokValue,
+            };
 
-         [HttpPost]
-         public IActionResult AddProduct(Products product)
-         {
-             _context.Products.Add(product);
-             _context.SaveChanges();
+            if (dto.CategoryIds != null && dto.CategoryIds.Count > 0)
+            {
+                var categories = _context.Categories
+                    .Where(c => dto.CategoryIds.Contains(c.Id))
+                    .ToList();
 
-             return Ok(product);
-         }
-        
-        //Çoklu ürün ekleme 
+                product.Categories = categories;
+            }
+
+            _context.Products.Add(product);
+            _context.SaveChanges();
+
+            return Ok(new
+            {
+                product.Id,
+                product.ProductName,
+                product.Price,
+                product.Stt_Date,
+                product.MinStokValue,
+                Categories = product.Categories.Select(c => new { c.Id, c.Name })
+            });
+        }
+
+        // Çoklu ürün ekleme
         [HttpPost("bulk")]
+        [ApiExplorerSettings(IgnoreApi = true)]//İGNORE
         public IActionResult AddProducts([FromBody] List<Products> products)
         {
             _context.Products.AddRange(products);
@@ -227,70 +110,88 @@ namespace plm_api.Controllers
             return Ok(products.Count + " ürün eklendi");
         }
 
-
-        // =========================
-        // PUT: ürün güncelle
-        // =========================
-
+        // ====================================================
+        // PUT: ürün güncelle - (DİNAMİK MALİYET TETİKLEYİCİLİ!)
+        // ====================================================
         [HttpPut("{id}")]
-        public IActionResult UpdateProduct(int id, Products updated)
+        public IActionResult UpdateProduct(int id, ProductCreateDto dto)
         {
-            var product = _context.Products.FirstOrDefault(x => x.Id == id);
+            var product = _context.Products
+                .Include(x => x.Categories)
+                .FirstOrDefault(x => x.Id == id);
 
             if (product == null)
                 return NotFound("Ürün bulunamadı");
 
-            product.ProductName = updated.ProductName;
-            product.Price = updated.Price;
-            product.MinStokValue = updated.MinStokValue;
-            product.Stt_Date = updated.Stt_Date;
-            
-            _context.SaveChanges();
+            // Fiyatın değişip değişmediğini kontrol etmek için eski fiyatı saklıyoruz
+            decimal oldPrice = product.Price;
 
-            return Ok(product);
-        }
-        //Ürün stt tarihini id yazarak değiş(Yalnızca stt tarihi değişir)
-        [HttpPut("{id}/stt-date")]
-        public IActionResult UpdateSttDate(int id, DateTime newDate)
-        {
-            var product = _context.Products.FirstOrDefault(x => x.Id == id);
-
-            if (product == null)
-                return NotFound("Ürün bulunamadı");
-
-            product.Stt_Date = newDate;
-
-            _context.SaveChanges();
-            //HANGİ SORGUYLA UPDATE OLDU
-
-            return Ok(new
-            {
-                Message = "Stt tarihi güncellendi",
-                product.Id,
-                product.ProductName,
-                product.Stt_Date
-            });
-        }
-
-        //Ürün json kullanarak stt tarihi değişimi 
-
-        /*[HttpPut("{id}/stt-date-json")]
-        public IActionResult UpdateSttDate(int id, [FromBody] UpdateSttDateDto dto)
-        {
-            var product = _context.Products.FirstOrDefault(x => x.Id == id);
-            if (product == null)
-                return NotFound("Ürün bulunamadı");
+            product.ProductName = dto.ProductName;
+            product.Price = dto.Price;
+            product.MinStokValue = dto.MinStokValue;
             product.Stt_Date = dto.Stt_Date;
+
+            if (dto.CategoryIds != null)
+            {
+                var categories = _context.Categories
+                    .Where(c => dto.CategoryIds.Contains(c.Id))
+                    .ToList();
+
+                product.Categories.Clear();
+                foreach (var cat in categories)
+                    product.Categories.Add(cat);
+            }
+
             _context.SaveChanges();
+
+            // 🔥 CANLI TETİKLEME: Eğer parçanın birim fiyatı değiştiyse, 
+            // bu parçanın bağlı olduğu bir üst montaj (Parent) var mı diye bakıyoruz.
+            if (oldPrice != dto.Price)
+            {
+                var parentRelations = _context.ProductItems
+                    .Where(pi => pi.ChildProductId == id)
+                    .ToList();
+
+                // Bu parça birden fazla reçetede alt bileşen olabilir, hepsini tek tek yukarı doğru güncelliyoruz
+                foreach (var relation in parentRelations)
+                {
+                    RecalculateParentCostRecursive(relation.ParentProductId);
+                }
+            }
+
             return Ok(new
             {
-                Message = "STT tarihi güncellendi",
                 product.Id,
                 product.ProductName,
-                product.Stt_Date
+                product.Price,
+                product.Stt_Date,
+                product.MinStokValue,
+                Categories = product.Categories.Select(c => new { c.Id, c.Name })
             });
         }
-        */
+
+        // Ürün json kullanarak stt tarihi değişimi
+        [HttpPut("update-stt-json")]
+        [ApiExplorerSettings(IgnoreApi = true)]//İGNORE
+        public IActionResult ProducsSttUpdateWithJson([FromBody] ProductUpdateSttDateDto updateDto)
+        {
+            var product = _context.Products.FirstOrDefault(p => p.Id == updateDto.ProductId);
+
+            if (product == null)
+            {
+                return NotFound(new { message = "Ürün bulunamadı!" });
+            }
+
+            product.Stt_Date = updateDto.NewStt_Date;
+            _context.SaveChanges();
+
+            return Ok(new
+            {
+                message = "Ürünün Son Tüketim Tarihi başarıyla güncellendi.",
+                productId = product.Id,
+                newStt = product.Stt_Date
+            });
+        }
 
         // =========================
         // DELETE: ürün sil
@@ -303,75 +204,94 @@ namespace plm_api.Controllers
             if (product == null)
                 return NotFound("Ürün bulunamadı");
 
+            // Silinmeden önce bu ürünün üst montaj bağlarını buluyoruz
+            var parentRelations = _context.ProductItems
+                .Where(pi => pi.ChildProductId == id)
+                .ToList();
+
             _context.Products.Remove(product);
             _context.SaveChanges();
+
+            // 🔥 Parça silindiği için üst montajların maliyetinden bu parçayı düşürmek üzere yeniden hesaplama tetikliyoruz
+            foreach (var relation in parentRelations)
+            {
+                RecalculateParentCostRecursive(relation.ParentProductId);
+            }
 
             return Ok("Ürün silindi");
         }
 
-        /*[HttpPost("category")]
-        public IActionResult AddCategory(Category category)
+        // =========================================================================
+        // 🔥 PRODUCTS CONTROLLER İÇİN ROLL-UP COST HESAPLAMA YARDIMCI FONKSİYONU
+        // =========================================================================
+        private void RecalculateParentCostRecursive(int parentProductId)
         {
-            _context.Categories.Add(category);
-            _context.SaveChanges();
-
-            return Ok(category);
-        }
-        */
-        [HttpGet("category/root")]
-        public IActionResult GetRootCategories()
-        {
-            var roots = _context.Categories
-                .Where(x => x.ParentId == null)
+            var subComponents = _context.ProductItems
+                .Include(pi => pi.ChildProduct)
+                .Where(pi => pi.ParentProductId == parentProductId)
                 .ToList();
 
-            return Ok(roots);
-        }
-        [HttpGet("category/tree")]
-        public IActionResult GetTree()
-        {
-            var tree = _context.Categories
-                .Include(x => x.Children)
-                .Where(x => x.ParentId == null)
-                .ToList();
+            if (!subComponents.Any()) return;
 
-            return Ok(tree);
-        }
-        [HttpPost("category")]
-        public IActionResult AddCategory([FromBody] Category category)
-        {
-            _context.Categories.Add(category);
-            _context.SaveChanges();
-            return Ok(category);
-        }
-
-        
-        // 1. METOT: - TÜM PARAMETRELER JSON'DAN GELİR
-        [HttpPut("update-stt-json")]
-        public IActionResult ProducsSttUpdateWithJson([FromBody] ProductUpdateSttDateDto updateDto)
-        {
-            // DTO'daki 'ProductId' kullanılıyor
-            var product = _context.Products.FirstOrDefault(p => p.Id == updateDto.ProductId);
-
-            if (product == null)
+            decimal calculatedTotalCost = 0;
+            foreach (var item in subComponents)
             {
-                return NotFound(new { message = "Ürün bulunamadı!" });
+                if (item.ChildProduct != null)
+                {
+                    calculatedTotalCost += item.ChildProduct.Price * item.Quantity;
+                }
             }
 
-            // DTO'daki 'NewStt_Date' kullanılıyor
-            product.Stt_Date = updateDto.NewStt_Date;
+            var parentProduct = _context.Products.FirstOrDefault(p => p.Id == parentProductId);
+            if (parentProduct != null)
+            {
+                parentProduct.Price = calculatedTotalCost;
+                _context.SaveChanges();
+
+                // Üst kademeye doğru zincirleme özyineleme devam ediyor...
+                var upperRelation = _context.ProductItems.FirstOrDefault(pi => pi.ChildProductId == parentProductId);
+                if (upperRelation != null)
+                {
+                    RecalculateParentCostRecursive(upperRelation.ParentProductId);
+                }
+            }
+        }
+        [HttpPut("BulkUpdateImageUrls")]
+        public IActionResult BulkUpdateImageUrls([FromBody] List<BulkImageUpdateDto> updateList)
+        {
+            if (updateList == null || !updateList.Any())
+            {
+                return BadRequest("Güncellenecek veri listesi boş olamaz.");
+            }
+
+            // 1. Veritabanındaki tüm ürünleri hafızaya çekiyoruz (Hızlı eşleşme için)
+            var allProducts = _context.Products.ToList();
+            int updatedCount = 0;
+
+            // 2. Gelen listedeki her bir elemanı dönüyoruz
+            foreach (var item in updateList)
+            {
+                // Veritabanında eşleşen ürünü bul (Hem TreeId'ler hem de alt ürünlerin Id'leri için)
+                var product = allProducts.FirstOrDefault(p => p.Id == item.Id);
+
+                if (product != null)
+                {
+                    product.ImageUrl = item.ImageUrl;
+                    updatedCount++;
+                }
+            }
+
+            // 3. Değişiklikleri tek bir seferde SQL Server'a kaydediyoruz (Bulk Save)
             _context.SaveChanges();
 
-            return Ok(new
-            {
-                message = "Ürünün Son Tüketim Tarihi başarıyla güncellendi.",
-                productId = product.Id,
-                newStt = product.Stt_Date
-            });
+            return Ok(new { Message = $"{updatedCount} adet ürünün görsel linki toplu olarak başarıyla güncellendi." });
         }
 
-        
-
+        // 📦 Toplu taşıma için kullanacağımız küçük veri modeli (DTO)
+        public class BulkImageUpdateDto
+        {
+            public int Id { get; set; }
+            public string? ImageUrl { get; set; }
+        }
     }
 }
-

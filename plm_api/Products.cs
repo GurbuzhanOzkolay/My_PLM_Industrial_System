@@ -1,20 +1,20 @@
-using plm_api;
-
-public class Products
+﻿namespace plm_api
 {
-    public int Id { get; set; }
+    public class Products
+    {
+        public int Id { get; set; }
 
-    public string ProductName { get; set; }
+        public string ProductName { get; set; }
 
-    public decimal Price { get; set; } = 0;
+        public decimal Price { get; set; } = 0;
 
-    public DateTime Stt_Date { get; set; }
+        public DateTime Stt_Date { get; set; }
 
-    public int MinStokValue { get; set; }
+        public int MinStokValue { get; set; }
 
-    public string? Ingredients { get; set; }
+        public string? ImageUrl { get; set; }
 
-     public int? CategoryId { get; set; }
 
-    public Category? Category { get; set; }
+        public ICollection<Category> Categories { get; set; } = new List<Category>();
+    }
 }

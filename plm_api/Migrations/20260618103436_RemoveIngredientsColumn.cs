@@ -1,0 +1,108 @@
+﻿using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace plm_api.Migrations
+{
+    /// <inheritdoc />
+    public partial class RemoveIngredientsColumn : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropTable(
+                name: "ProductTrees");
+
+            migrationBuilder.DropColumn(
+                name: "Ingredients",
+                table: "Products");
+
+            migrationBuilder.CreateTable(
+                name: "ProductItems",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ParentProductId = table.Column<int>(type: "int", nullable: false),
+                    ChildProductId = table.Column<int>(type: "int", nullable: false),
+                    Quantity = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductItems", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ProductItems_Products_ChildProductId",
+                        column: x => x.ChildProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ProductItems_Products_ParentProductId",
+                        column: x => x.ParentProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductItems_ChildProductId",
+                table: "ProductItems",
+                column: "ChildProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductItems_ParentProductId",
+                table: "ProductItems",
+                column: "ParentProductId");
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropTable(
+                name: "ProductItems");
+
+            migrationBuilder.AddColumn<string>(
+                name: "Ingredients",
+                table: "Products",
+                type: "nvarchar(max)",
+                nullable: true);
+
+            migrationBuilder.CreateTable(
+                name: "ProductTrees",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ChildProductId = table.Column<int>(type: "int", nullable: false),
+                    ParentProductId = table.Column<int>(type: "int", nullable: false),
+                    Quantity = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductTrees", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ProductTrees_Products_ChildProductId",
+                        column: x => x.ChildProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ProductTrees_Products_ParentProductId",
+                        column: x => x.ParentProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductTrees_ChildProductId",
+                table: "ProductTrees",
+                column: "ChildProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductTrees_ParentProductId",
+                table: "ProductTrees",
+                column: "ParentProductId");
+        }
+    }
+}
