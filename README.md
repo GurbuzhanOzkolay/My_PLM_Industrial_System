@@ -43,4 +43,4 @@ Fren Silindiri
 Bu proje ile endüstriyel bir işletmedeki ham verilerin anlamlı bir hiyerarşiye dönüştürülmesi ve üretim verimliliğinin matematiksel modellerle (OEE) izlenmesi hedeflenmiştir.
 
 Geliştirici: [Gürbüzhan Özkolay]
-LınkedIn[www.linkedin.com/in/gürbüzhan-özkolay]
+LınkedIn[www.linkedin.com/in/gürbüzhan-özkolay-8964a0335]
