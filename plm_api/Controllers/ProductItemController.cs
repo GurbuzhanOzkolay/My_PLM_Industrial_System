@@ -1,12 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using plm_api.Dtos;
+using Spectre.Console;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
-using Spectre.Console;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace plm_api.Controllers
 {
@@ -22,9 +23,9 @@ namespace plm_api.Controllers
         }
 
         // =========================================================================
-        // 🔥 ARADIĞIMIZ VE GÜNCELLEDİĞİmİZ METOT TAM OLARAK BURASI! (TÜM AĞAÇLAR)
+        //  ARADIĞIMIZ VE GÜNCELLEDİĞİmİZ METOT TAM OLARAK BURASI! (TÜM AĞAÇLAR)
         // =========================================================================
-        [HttpGet("GetAllMasterProductTrees")]
+        [HttpGet("master-trees")]
         public IActionResult GetAllMasterProductTrees()
         {
             // 1. Adım: Veritabanındaki tüm reçete bağlarını çekiyoruz (Kategori hatası düzeltildi)
@@ -66,19 +67,10 @@ namespace plm_api.Controllers
             return Ok(allTrees);
         }
 
-        [HttpPost()]
-        public IActionResult AddMasterProduct([FromBody] Products product)
-        {
-            if (product == null) return BadRequest("Ürün verisi boş olamaz.");
-
-            _context.Products.Add(product);
-            _context.SaveChanges();
-
-            return Ok(new { Message = "Ana ürün başarıyla eklendi.", Product = product });
-        }
+        
 
         [HttpPost("product-items")]
-        public IActionResult AddProductItems([FromBody] ProductItemsRequest request)
+        public IActionResult AddProductItems([FromBody] ProductItemsRequestDto request) 
         {
             if (request == null) return BadRequest("İstek verisi boş olamaz.");
 
@@ -147,7 +139,9 @@ namespace plm_api.Controllers
         }
 
         [HttpGet("sql")]
+        [ApiExplorerSettings(IgnoreApi = true)] //ignore 
         public IActionResult GetProductTreeSql(int id)
+            
         {
             string masterQuery = "SELECT Id, ProductName, Price FROM Products WHERE Id = @MasterId";
             string sqlQuery = @"
@@ -158,7 +152,7 @@ namespace plm_api.Controllers
             pt.Quantity AS ItemQuantity, 
             p.ImageUrl AS ProductItemImageUrl,
             (SELECT STRING_AGG(c.Name, '; ') 
-             FROM CategoryProduct cp -- 🔥 ESKİSİ: CategoryProducts idi, yeni EF yapısına göre düzeltildi!
+             FROM CategoryProducts cp -- 
              INNER JOIN Categories c ON cp.CategoriesId = c.Id 
              WHERE cp.ProductsId = p.Id) AS CategoryNames
         FROM ProductItems pt
@@ -232,7 +226,7 @@ namespace plm_api.Controllers
             });
         }
 
-        [HttpPut("ParentChildQuntity-Menage")]
+        [HttpPut("update-quantity")]
         public IActionResult UpdateSubProductQuantity([FromBody] UpdateQuantityRequest request)
         {
             if (request == null) return BadRequest("İstek verisi boş olamaz.");
@@ -252,7 +246,7 @@ namespace plm_api.Controllers
             return Ok(new { Message = "Bileşen miktarı başarıyla güncellendi.", UpdatedQuantity = request.NewQuantity });
         }
 
-        [HttpDelete("delete-childItem")]
+        [HttpDelete("child-item")]
         public IActionResult DeleteProductItem(int parentProductId, int childProductId)
         {
             var productItem = _context.ProductItems
@@ -305,18 +299,8 @@ namespace plm_api.Controllers
             }
         }
 
-        public class ProductItemsRequest
-        {
-            public int ParentProductId { get; set; }
-            public int ChildProductId { get; set; }
-            public decimal Quantity { get; set; }
-        }
+       
 
-        public class UpdateQuantityRequest
-        {
-            public int ParentProductId { get; set; }
-            public int ChildProductId { get; set; }
-            public decimal NewQuantity { get; set; }
-        }
+      
     }
 }

@@ -130,6 +130,7 @@ namespace plm_api.Controllers
             product.Price = dto.Price;
             product.MinStokValue = dto.MinStokValue;
             product.Stt_Date = dto.Stt_Date;
+            product.ImageUrl = dto.ImageUrl;
 
             if (dto.CategoryIds != null)
             {
@@ -257,6 +258,7 @@ namespace plm_api.Controllers
             }
         }
         [HttpPut("BulkUpdateImageUrls")]
+        [ApiExplorerSettings(IgnoreApi = true)] //ignore 
         public IActionResult BulkUpdateImageUrls([FromBody] List<BulkImageUpdateDto> updateList)
         {
             if (updateList == null || !updateList.Any())
@@ -287,11 +289,69 @@ namespace plm_api.Controllers
             return Ok(new { Message = $"{updatedCount} adet ürünün görsel linki toplu olarak başarıyla güncellendi." });
         }
 
-        // 📦 Toplu taşıma için kullanacağımız küçük veri modeli (DTO)
-        public class BulkImageUpdateDto
+        [HttpPut("convert-image-urls-to-base64")]
+        [ApiExplorerSettings(IgnoreApi = true)] //ignore
+        public async Task<IActionResult> ConvertImageUrlsToBase64()
         {
-            public int Id { get; set; }
-            public string? ImageUrl { get; set; }
-        }
+            var products = _context.Products
+                .Where(p => p.ImageUrl != null && p.ImageUrl.StartsWith("http"))
+                .ToList();
+
+            if (!products.Any())
+            {
+                return Ok("Base64'e çevrilecek URL bulunamadı.");
+            }
+
+            using var httpClient = new HttpClient();
+
+            // Bazı görsel linkleri User-Agent olmadan resmi vermeyebilir.
+            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0");
+
+            int successCount = 0;
+            int failCount = 0;
+
+            foreach (var product in products)
+            {
+                try
+                {
+                    var response = await httpClient.GetAsync(product.ImageUrl);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        failCount++;
+                        continue;
+                    }
+
+                    var imageBytes = await response.Content.ReadAsByteArrayAsync();
+                    var base64String = Convert.ToBase64String(imageBytes);
+
+                    var contentType = response.Content.Headers.ContentType?.MediaType;
+
+                    if (string.IsNullOrWhiteSpace(contentType))
+                    {
+                        contentType = "image/png";
+                    }
+
+                    product.ImageUrl = $"data:{contentType};base64,{base64String}";
+
+                    successCount++;
+                }
+                catch
+                {
+                    failCount++;
+                }
+            }
+
+            _context.SaveChanges();
+
+            return Ok(new
+            {
+                Message = "Görsel URL'leri Base64 formatına çevrildi.",
+                SuccessCount = successCount,
+                FailCount = failCount
+            });
+        } 
+
+
     }
 }

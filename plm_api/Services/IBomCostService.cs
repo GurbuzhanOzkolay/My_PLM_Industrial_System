@@ -6,7 +6,7 @@ namespace plm_api.Services
 {
     public class BomCostService
     {
-        private readonly AppDbContext _context; // 
+        private readonly AppDbContext _context;  
 
         public BomCostService(AppDbContext context)
         {

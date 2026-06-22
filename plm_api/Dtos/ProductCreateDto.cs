@@ -3,7 +3,7 @@
     public class ProductCreateDto
     {
         public string ProductName { get; set; }
-        public decimal Price { get; set; } = 0;
+        public decimal Price { get; set; } = 0;  
         public DateTime Stt_Date { get; set; }
         public int MinStokValue { get; set; }
 

@@ -1,0 +1,2005 @@
+﻿```html
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sampa PLM - EBOM Dashboard</title>
+
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #eff6ff;
+            --secondary: #475569;
+            --success: #059669;
+            --danger: #dc2626;
+            --warning: #f59e0b;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text: #0f172a;
+            --muted: #64748b;
+            --shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 22px;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: #334155;
+        }
+
+        .page {
+            max-width: 1320px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+            .header h1 {
+                margin: 0 0 6px 0;
+                color: var(--primary);
+                font-size: 30px;
+                letter-spacing: -0.5px;
+            }
+
+            .header p {
+                margin: 0;
+                color: var(--muted);
+                font-size: 14px;
+            }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(180px, 1fr));
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .summary-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: var(--shadow);
+        }
+
+            .summary-card .label {
+                font-size: 12px;
+                color: var(--muted);
+                margin-bottom: 8px;
+            }
+
+            .summary-card .value {
+                font-size: 24px;
+                font-weight: 800;
+                color: var(--text);
+            }
+
+            .summary-card .hint {
+                font-size: 11px;
+                color: var(--muted);
+                margin-top: 6px;
+            }
+
+        .panel {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+        }
+
+        .panel-title {
+            font-weight: 800;
+            color: var(--text);
+            font-size: 15px;
+            margin-bottom: 6px;
+        }
+
+        .panel-subtitle {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 14px;
+        }
+
+        .toolbar-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .search-box {
+            min-width: 280px;
+            flex: 1;
+            max-width: 420px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+            background: #ffffff;
+            font-family: inherit;
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+            input:focus, select:focus, textarea:focus {
+                border-color: var(--primary);
+                box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.08);
+            }
+
+        .category-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .category-button {
+            border: 1px solid var(--border);
+            background: #ffffff;
+            color: #334155;
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+            .category-button:hover {
+                border-color: var(--primary);
+                background: var(--primary-light);
+                color: var(--primary);
+            }
+
+            .category-button.active {
+                background: var(--primary);
+                border-color: var(--primary);
+                color: white;
+            }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 24px;
+        }
+
+        .button {
+            border: none;
+            border-radius: 8px;
+            padding: 9px 12px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 13px;
+            transition: 0.2s ease;
+        }
+
+            .button:hover {
+                opacity: 0.9;
+                transform: translateY(-1px);
+            }
+
+        .button-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .button-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .button-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .button-secondary {
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid var(--border);
+        }
+
+        .button-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .tab-button {
+            border: 1px solid var(--border);
+            background: #ffffff;
+            padding: 9px 13px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 13px;
+            color: #334155;
+        }
+
+            .tab-button.active {
+                background: var(--primary);
+                color: #ffffff;
+                border-color: var(--primary);
+            }
+
+        .tab-content {
+            display: none;
+        }
+
+            .tab-content.active {
+                display: block;
+            }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+            .form-grid.two {
+                grid-template-columns: repeat(2, minmax(180px, 1fr));
+            }
+
+            .form-grid .full {
+                grid-column: 1 / -1;
+            }
+
+        .form-field label {
+            display: block;
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .form-actions {
+            margin-top: 14px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .product-management-grid {
+            display: grid;
+            grid-template-columns: minmax(260px, 360px) 1fr;
+            gap: 14px;
+        }
+
+        .side-list {
+            max-height: 420px;
+            overflow: auto;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #f8fafc;
+        }
+
+        .list-item {
+            padding: 11px 12px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            background: #ffffff;
+        }
+
+            .list-item:hover {
+                background: var(--primary-light);
+            }
+
+            .list-item.active {
+                background: var(--primary);
+                color: white;
+            }
+
+        .list-item-title {
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .list-item-meta {
+            font-size: 11px;
+            opacity: 0.75;
+            margin-top: 4px;
+        }
+
+        .tree-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 66px;
+            align-items: center;
+            margin-bottom: 50px;
+        }
+
+        .assembly-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 34px;
+            width: 100%;
+            position: relative;
+        }
+
+            .assembly-group::after {
+                content: "";
+                width: 2px;
+                height: 24px;
+                background: var(--border);
+                position: absolute;
+                top: 270px;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+
+        .children-grid {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 24px;
+            width: 100%;
+        }
+
+        .plm-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            width: 236px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            position: relative;
+            transition: 0.25s ease;
+        }
+
+            .plm-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 12px 26px rgba(30, 58, 138, 0.12);
+            }
+
+        .master-node {
+            border-top: 6px solid var(--primary);
+        }
+
+        .child-node {
+            border-top: 6px solid var(--secondary);
+        }
+
+        .plm-card img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            background: #f1f5f9;
+            margin-bottom: 12px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .plm-card h3 {
+            font-size: 14px;
+            margin: 8px 0;
+            color: var(--text);
+            min-height: 40px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .badge {
+            position: absolute;
+            top: -13px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: white;
+            font-size: 10px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-weight: 800;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+            white-space: nowrap;
+        }
+
+        .child-node .badge {
+            background: var(--secondary);
+        }
+
+        .price-tag {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--success);
+            margin-top: 8px;
+        }
+
+        .small-info {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 5px;
+        }
+
+        .category-list {
+            margin-top: 9px;
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+            flex-wrap: wrap;
+            min-height: 19px;
+        }
+
+        .category-span {
+            font-size: 9px;
+            background: #f1f5f9;
+            padding: 3px 7px;
+            border-radius: 6px;
+            color: #64748b;
+        }
+
+        .quantity-panel {
+            margin-top: 11px;
+            padding-top: 11px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quantity-button {
+            width: 31px;
+            height: 31px;
+            border: none;
+            border-radius: 8px;
+            background: var(--primary);
+            color: white;
+            font-size: 18px;
+            font-weight: 800;
+            cursor: pointer;
+            line-height: 31px;
+        }
+
+            .quantity-button.minus {
+                background: var(--danger);
+            }
+
+            .quantity-button:disabled {
+                opacity: 0.45;
+                cursor: not-allowed;
+            }
+
+        .quantity-value {
+            min-width: 44px;
+            font-weight: 800;
+            color: var(--text);
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 6px 8px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+            .card-actions button {
+                flex: 1;
+            }
+
+        .detail-button {
+            width: 100%;
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+            .detail-button:hover {
+                background: var(--primary-light);
+                color: var(--primary);
+                border-color: #bfdbfe;
+            }
+
+        .loading-box,
+        .empty-message,
+        .error-box {
+            text-align: center;
+            padding: 24px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 780px;
+        }
+
+        .loading-box {
+            color: var(--muted);
+            background: #ffffff;
+            border: 1px dashed var(--border);
+        }
+
+        .empty-message {
+            color: var(--muted);
+            background: #ffffff;
+            border: 1px dashed var(--border);
+        }
+
+        .error-box {
+            color: #991b1b;
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+        }
+
+        .toast {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            min-width: 280px;
+            max-width: 460px;
+            background: #0f172a;
+            color: white;
+            padding: 13px 15px;
+            border-radius: 10px;
+            box-shadow: 0 14px 32px rgba(0,0,0,0.20);
+            display: none;
+            z-index: 1000;
+            font-size: 13px;
+        }
+
+            .toast.success {
+                background: var(--success);
+            }
+
+            .toast.error {
+                background: var(--danger);
+            }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            padding: 20px;
+        }
+
+        .modal {
+            background: white;
+            width: 100%;
+            max-width: 620px;
+            border-radius: 14px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+            overflow: hidden;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 16px 18px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+            .modal-header h3 {
+                margin: 0;
+                font-size: 16px;
+            }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 18px;
+        }
+
+            .modal-body img {
+                width: 100%;
+                max-height: 220px;
+                object-fit: cover;
+                border-radius: 10px;
+                margin-bottom: 14px;
+                background: #f1f5f9;
+            }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            border-bottom: 1px solid var(--border);
+            padding: 9px 0;
+            font-size: 13px;
+        }
+
+            .detail-row strong {
+                color: var(--text);
+            }
+
+        .breakdown-list {
+            margin-top: 14px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .breakdown-item {
+            display: grid;
+            grid-template-columns: 1fr 90px 90px 110px;
+            gap: 8px;
+            padding: 9px 10px;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+        }
+
+            .breakdown-item:last-child {
+                border-bottom: none;
+            }
+
+        .breakdown-head {
+            background: #f8fafc;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .image-preview {
+            width: 120px;
+            height: 75px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #f1f5f9;
+            margin-top: 8px;
+            display: none;
+        }
+
+        @media (max-width: 1000px) {
+            .summary-grid {
+                grid-template-columns: repeat(2, minmax(180px, 1fr));
+            }
+
+            .form-grid,
+            .form-grid.two,
+            .product-management-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 14px;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .toolbar-top {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                min-width: 100%;
+                max-width: 100%;
+            }
+
+            .plm-card {
+                width: 92%;
+                max-width: 300px;
+            }
+
+            .children-grid {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .assembly-group::after {
+                display: none;
+            }
+
+            .breakdown-item {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+
+        <div class="header">
+            <h1>Sampa PLM - EBOM System</h1>
+            <p>Dinamik Ürün Ağacı, Ürün Yönetimi, Kategori Yönetimi ve Canlı Roll-up Maliyet Gösterimi</p>
+        </div>
+
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="label">Ana Montaj Sayısı</div>
+                <div id="summaryMasterCount" class="value">0</div>
+                <div class="hint">Backend’den gelen üst ürünler</div>
+            </div>
+
+            <div class="summary-card">
+                <div class="label">Alt Bileşen Sayısı</div>
+                <div id="summaryChildCount" class="value">0</div>
+                <div class="hint">Filtreye göre görünen child ürünler</div>
+            </div>
+
+            <div class="summary-card">
+                <div class="label">Toplam Roll-up Maliyet</div>
+                <div id="summaryTotalCost" class="value">0 TL</div>
+                <div class="hint">Parent ürün toplam maliyetleri</div>
+            </div>
+
+            <div class="summary-card">
+                <div class="label">Toplam Ürün / Kategori</div>
+                <div id="summaryProductCategoryCount" class="value" style="font-size: 20px;">0 / 0</div>
+                <div class="hint">Products ve Category endpointlerinden gelir</div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="tabs">
+                <button class="tab-button active" onclick="openTab('treeTab', this)">Ürün Ağacı</button>
+                <button class="tab-button" onclick="openTab('addProductTab', this)">Yeni Ürün Ekle</button>
+                <button class="tab-button" onclick="openTab('bomTab', this)">BOM İlişkisi Ekle</button>
+                <button class="tab-button" onclick="openTab('manageProductsTab', this)">Ürün Yönetimi</button>
+                <button class="tab-button" onclick="openTab('categoryManageTab', this)">Kategori Yönetimi</button>
+            </div>
+
+            <div id="treeTab" class="tab-content active">
+                <div class="toolbar-top">
+                    <div>
+                        <div class="panel-title">Kategori Filtresi ve Arama</div>
+                        <div class="panel-subtitle">Kategoriler backend API üzerinden dinamik olarak yüklenir.</div>
+                    </div>
+
+                    <div class="search-box">
+                        <input id="searchInput"
+                               type="text"
+                               placeholder="Ürün adı veya kategori ara..."
+                               oninput="setSearchTerm(this.value)">
+                    </div>
+                </div>
+
+                <div id="categoryButtons" class="category-buttons">
+                    <button class="category-button active">Kategoriler yükleniyor...</button>
+                </div>
+            </div>
+
+            <div id="addProductTab" class="tab-content">
+                <div class="panel-title">Yeni Ürün Ekle</div>
+                <div class="panel-subtitle">Ürün bilgileri frontend formundan alınır ve POST /api/Products endpointine gönderilir.</div>
+
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label>Ürün Adı</label>
+                        <input id="newProductName" type="text" placeholder="Örn: Burç">
+                    </div>
+
+                    <div class="form-field">
+                        <label>Fiyat</label>
+                        <input id="newProductPrice" type="number" step="0.01" placeholder="0">
+                    </div>
+
+                    <div class="form-field">
+                        <label>Minimum Stok</label>
+                        <input id="newProductMinStock" type="number" placeholder="0">
+                    </div>
+
+                    <div class="form-field">
+                        <label>STT Tarihi</label>
+                        <input id="newProductSttDate" type="datetime-local">
+                    </div>
+
+                    <div class="form-field">
+                        <label>Kategoriler</label>
+                        <select id="newProductCategories" multiple size="4"></select>
+                    </div>
+
+                    <div class="form-field">
+                        <label>Ürün Görseli Base64</label>
+                        <input id="newProductImageFile" type="file" accept="image/*" onchange="handleImageFileChange(event, 'newProductImageUrl', 'newProductImagePreview')">
+                        <img id="newProductImagePreview" class="image-preview" alt="Ön izleme">
+                    </div>
+
+                    <div class="form-field full">
+                        <label>ImageUrl / Base64 Değeri</label>
+                        <textarea id="newProductImageUrl" placeholder="Dosya seçersen otomatik base64 dolar. İstersen elle de base64 veya URL yazabilirsin."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="button button-success" onclick="createProduct()">Ürünü Kaydet</button>
+                    <button class="button button-secondary" onclick="clearCreateProductForm()">Formu Temizle</button>
+                </div>
+            </div>
+
+            <div id="bomTab" class="tab-content">
+                <div class="panel-title">Ürün Ağacına Alt Bileşen Ekle</div>
+                <div class="panel-subtitle">Seçilen parent ürünün altına child ürün eklenir ve maliyet backend tarafında yeniden hesaplanır.</div>
+
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label>Ana Ürün / Parent</label>
+                        <select id="bomParentProduct"></select>
+                    </div>
+
+                    <div class="form-field">
+                        <label>Alt Bileşen / Child</label>
+                        <select id="bomChildProduct"></select>
+                    </div>
+
+                    <div class="form-field">
+                        <label>Miktar / Quantity</label>
+                        <input id="bomQuantity" type="number" step="1" min="1" value="1">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="button button-success" onclick="addBomRelation()">Alt Bileşen Ekle</button>
+                    <button class="button button-secondary" onclick="loadAllData()">Verileri Yenile</button>
+                </div>
+            </div>
+
+            <div id="manageProductsTab" class="tab-content">
+                <div class="panel-title">Ürün Yönetimi</div>
+                <div class="panel-subtitle">Ürün seç, bilgilerini güncelle veya ilişkisi yoksa sil.</div>
+
+                <div class="product-management-grid">
+                    <div>
+                        <input id="productListSearch" type="text" placeholder="Ürün listesinde ara..." oninput="renderProductListForManagement()">
+                        <div id="productManageList" class="side-list" style="margin-top: 10px;"></div>
+                    </div>
+
+                    <div>
+                        <div class="form-grid two">
+                            <div class="form-field">
+                                <label>Ürün ID</label>
+                                <input id="editProductId" type="number" disabled>
+                            </div>
+
+                            <div class="form-field">
+                                <label>Ürün Adı</label>
+                                <input id="editProductName" type="text">
+                            </div>
+
+                            <div class="form-field">
+                                <label>Fiyat</label>
+                                <input id="editProductPrice" type="number" step="0.01">
+                            </div>
+
+                            <div class="form-field">
+                                <label>Minimum Stok</label>
+                                <input id="editProductMinStock" type="number">
+                            </div>
+
+                            <div class="form-field">
+                                <label>STT Tarihi</label>
+                                <input id="editProductSttDate" type="datetime-local">
+                            </div>
+
+                            <div class="form-field">
+                                <label>Kategoriler</label>
+                                <select id="editProductCategories" multiple size="4"></select>
+                            </div>
+
+                            <div class="form-field full">
+                                <label>Ürün Görseli Base64</label>
+                                <input id="editProductImageFile" type="file" accept="image/*" onchange="handleImageFileChange(event, 'editProductImageUrl', 'editProductImagePreview')">
+                                <img id="editProductImagePreview" class="image-preview" alt="Ön izleme">
+                            </div>
+
+                            <div class="form-field full">
+                                <label>ImageUrl / Base64 Değeri</label>
+                                <textarea id="editProductImageUrl"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="button button-primary" onclick="updateSelectedProduct()">Ürünü Güncelle</button>
+                            <button class="button button-danger" onclick="deleteSelectedProduct()">Ürünü Sil</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="categoryManageTab" class="tab-content">
+                <div class="panel-title">Kategori Yönetimi</div>
+                <div class="panel-subtitle">Kategori ekleme, isim güncelleme ve silme işlemleri backend API ile yapılır.</div>
+
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label>Yeni Kategori Adı</label>
+                        <input id="newCategoryName" type="text" placeholder="Örn: Süspansiyon">
+                    </div>
+
+                    <div class="form-field">
+                        <label>Güncellenecek Kategori</label>
+                        <select id="editCategorySelect"></select>
+                    </div>
+
+                    <div class="form-field">
+                        <label>Yeni Kategori İsmi</label>
+                        <input id="editCategoryName" type="text" placeholder="Yeni ad">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="button button-success" onclick="createCategory()">Kategori Ekle</button>
+                    <button class="button button-primary" onclick="updateCategoryName()">Kategori Adını Güncelle</button>
+                    <button class="button button-danger" onclick="deleteCategory()">Kategori Sil</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <div id="statusText">Veriler backend sunucusundan yükleniyor...</div>
+            <button class="button button-success" onclick="loadAllData()">Verileri Yenile</button>
+        </div>
+
+        <div id="treeContainer" class="tree-wrapper">
+            <div class="loading-box">Ürün ağacı yükleniyor...</div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <div id="detailModal" class="modal-backdrop" onclick="closeProductModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 id="modalTitle">Ürün Detayı</h3>
+                <button class="modal-close" onclick="closeProductModal()">×</button>
+            </div>
+            <div id="modalBody" class="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_API_URL = 'https://localhost:7027/api';
+
+        const PRODUCT_TREE_API_URL = `${BASE_API_URL}/ProductItem/master-trees`;
+        const PRODUCTS_API_URL = `${BASE_API_URL}/Products`;
+        const CATEGORY_API_URL = `${BASE_API_URL}/Category`;
+        const UPDATE_QUANTITY_API_URL = `${BASE_API_URL}/ProductItem/update-quantity`;
+        const ADD_BOM_RELATION_API_URL = `${BASE_API_URL}/ProductItem/product-items`;
+        const DELETE_BOM_RELATION_API_URL = `${BASE_API_URL}/ProductItem/child-item`;
+        const UPDATE_CATEGORY_NAME_API_URL = `${BASE_API_URL}/Category/update-name`;
+
+        let allTreeData = [];
+        let allCategories = [];
+        let allProducts = [];
+        let selectedCategoryName = 'ALL';
+        let searchTerm = '';
+        let isUpdatingQuantity = false;
+        let selectedProductForEdit = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAllData();
+            setDefaultDate();
+        });
+
+        function setDefaultDate() {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            const value = now.toISOString().slice(0, 16);
+
+            const newDate = document.getElementById('newProductSttDate');
+            if (newDate) newDate.value = value;
+        }
+
+        async function loadAllData() {
+            await Promise.all([
+                loadCategories(),
+                loadProducts(),
+                fetchAndRenderTree()
+            ]);
+
+            fillAllSelects();
+            renderProductListForManagement();
+        }
+
+        async function loadCategories() {
+            try {
+                const response = await fetch(CATEGORY_API_URL);
+                if (!response.ok) throw new Error('Kategori verisi alınamadı.');
+
+                allCategories = await response.json();
+                renderCategoryButtons();
+            } catch (error) {
+                console.error('Kategori verisi çekilirken hata oluştu:', error);
+                allCategories = [];
+                renderCategoryButtons();
+                showToast('Kategori verileri alınamadı.', 'error');
+            }
+        }
+
+        async function loadProducts() {
+            try {
+                const response = await fetch(PRODUCTS_API_URL);
+                if (!response.ok) throw new Error('Ürün verisi alınamadı.');
+
+                allProducts = await response.json();
+            } catch (error) {
+                console.error('Ürün verisi çekilirken hata oluştu:', error);
+                allProducts = [];
+                showToast('Ürün listesi alınamadı.', 'error');
+            }
+        }
+
+        async function fetchAndRenderTree() {
+            const container = document.getElementById('treeContainer');
+            const statusText = document.getElementById('statusText');
+
+            container.innerHTML = '<div class="loading-box">Ürün ağacı backend üzerinden yükleniyor...</div>';
+            statusText.textContent = 'Backend üzerinden ürün ağacı verisi çekiliyor...';
+
+            try {
+                const response = await fetch(PRODUCT_TREE_API_URL);
+                if (!response.ok) throw new Error('Ürün ağacı verisi alınamadı.');
+
+                const data = await response.json();
+                console.log("Backend'den gelen ürün ağacı:", data);
+
+                allTreeData = data;
+                renderTree(allTreeData);
+
+                statusText.textContent = `Son veri backend üzerinden yüklendi. Ana montaj sayısı: ${allTreeData.length}`;
+            } catch (error) {
+                console.error('Ürün ağacı verisi çekilirken hata oluştu:', error);
+
+                container.innerHTML = `
+                        <div class="error-box">
+                            <h3>Backend Bağlantı Hatası</h3>
+                            <p>API projesinin çalıştığından, portun doğru olduğundan ve endpointlerin aktif olduğundan emin ol.</p>
+                        </div>
+                    `;
+
+                statusText.textContent = 'Backend bağlantı hatası oluştu.';
+                showToast('Ürün ağacı verisi alınamadı.', 'error');
+                updateSummaryCards([]);
+            }
+        }
+
+        function openTab(tabId, button) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(tabId).classList.add('active');
+            button.classList.add('active');
+        }
+
+        function renderCategoryButtons() {
+            const categoryContainer = document.getElementById('categoryButtons');
+            if (!categoryContainer) return;
+
+            categoryContainer.innerHTML = '';
+
+            const allButton = document.createElement('button');
+            allButton.className = selectedCategoryName === 'ALL' ? 'category-button active' : 'category-button';
+            allButton.textContent = 'Tüm Ürünler';
+            allButton.onclick = () => setCategoryFilter('ALL');
+            categoryContainer.appendChild(allButton);
+
+            allCategories.forEach(category => {
+                const button = document.createElement('button');
+                button.className = selectedCategoryName === category.name ? 'category-button active' : 'category-button';
+                button.textContent = category.name;
+                button.onclick = () => setCategoryFilter(category.name);
+                categoryContainer.appendChild(button);
+            });
+        }
+
+        function setCategoryFilter(categoryName) {
+            selectedCategoryName = categoryName;
+            renderCategoryButtons();
+            renderTree(allTreeData);
+        }
+
+        function setSearchTerm(value) {
+            searchTerm = value.trim().toLowerCase();
+            renderTree(allTreeData);
+        }
+
+        function renderTree(treeData) {
+            const container = document.getElementById('treeContainer');
+            container.innerHTML = '';
+
+            if (!treeData || treeData.length === 0) {
+                container.innerHTML = '<div class="empty-message">Görüntülenecek ürün ağacı bulunamadı.</div>';
+                updateSummaryCards([]);
+                return;
+            }
+
+            let renderedTrees = [];
+
+            treeData.forEach(tree => {
+                const filteredChildren = getFilteredChildren(tree, tree.products || []);
+                const masterMatches = isMasterMatchingSearch(tree);
+
+                if (selectedCategoryName !== 'ALL' && filteredChildren.length === 0) return;
+                if (searchTerm && !masterMatches && filteredChildren.length === 0) return;
+
+                const visibleChildren = searchTerm && masterMatches
+                    ? getCategoryFilteredChildren(tree.products || [])
+                    : filteredChildren;
+
+                const treeForSummary = { ...tree, products: visibleChildren };
+                renderedTrees.push(treeForSummary);
+
+                const assemblyGroup = document.createElement('div');
+                assemblyGroup.className = 'assembly-group';
+
+                const masterHtml = `
+                        <div class="plm-card master-node">
+                            <div class="badge">ANA MONTAJ (ID: ${tree.treeId})</div>
+                            <img src="${getImageSource(tree.treeImageUrl)}" alt="${escapeHtml(tree.treeName)}">
+                            <h3>${escapeHtml(tree.treeName)}</h3>
+                            <div class="price-tag">${formatCurrency(tree.totalPrice)} TL</div>
+                            <div class="small-info">Min Stok: ${tree.minStokValue ?? '-'}</div>
+
+                            <div class="card-actions">
+                                <button class="detail-button" onclick='openProductModal(${safeJson({
+                    type: "Ana Montaj",
+                    id: tree.treeId,
+                    name: tree.treeName,
+                    price: tree.totalPrice,
+                    quantity: "-",
+                    total: tree.totalPrice,
+                    minStock: tree.minStokValue,
+                    imageUrl: tree.treeImageUrl,
+                    categories: [],
+                    children: tree.products || []
+                })})'>
+                                    Detay
+                                </button>
+                            </div>
+                        </div>
+                    `;
+
+                let childrenHtml = '<div class="children-grid">';
+
+                visibleChildren.forEach(child => {
+                    const childProductId = getChildProductId(child);
+                    const quantity = Number(child.quantity || 0);
+                    const unitPrice = Number(child.price || 0);
+                    const childTotalPrice = unitPrice * quantity;
+
+                    const categoriesHtml = Array.isArray(child.categories)
+                        ? child.categories.map(cat => `<span class="category-span">${escapeHtml(cat)}</span>`).join('')
+                        : '';
+
+                    childrenHtml += `
+                            <div class="plm-card child-node">
+                                <div class="badge">ALT BİLEŞEN</div>
+
+                                <img src="${getImageSource(child.imageUrl)}" alt="${escapeHtml(child.name)}">
+
+                                <h3>${escapeHtml(child.name)}</h3>
+
+                                <div class="small-info">Birim Fiyat: ${formatCurrency(unitPrice)} TL</div>
+                                <div class="price-tag">Toplam: ${formatCurrency(childTotalPrice)} TL</div>
+
+                                <div class="quantity-panel">
+                                    <button
+                                        class="quantity-button minus"
+                                        onclick="decreaseQuantity(${tree.treeId}, ${childProductId}, ${quantity})"
+                                        ${quantity <= 1 ? 'disabled' : ''}
+                                    >
+                                        -
+                                    </button>
+
+                                    <span class="quantity-value">${quantity}</span>
+
+                                    <button
+                                        class="quantity-button"
+                                        onclick="increaseQuantity(${tree.treeId}, ${childProductId}, ${quantity})"
+                                    >
+                                        +
+                                    </button>
+                                </div>
+
+                                <div class="category-list">${categoriesHtml}</div>
+
+                                <div class="card-actions">
+                                    <button class="detail-button" onclick='openProductModal(${safeJson({
+                        type: "Alt Bileşen",
+                        id: childProductId,
+                        name: child.name,
+                        price: unitPrice,
+                        quantity: quantity,
+                        total: childTotalPrice,
+                        minStock: child.minStokValue ?? "-",
+                        imageUrl: child.imageUrl,
+                        categories: child.categories || []
+                    })})'>
+                                        Detay
+                                    </button>
+
+                                    <button class="detail-button" style="color:#dc2626;" onclick="deleteBomRelation(${tree.treeId}, ${childProductId})">
+                                        İlişki Sil
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                });
+
+                childrenHtml += '</div>';
+
+                assemblyGroup.innerHTML = masterHtml + childrenHtml;
+                container.appendChild(assemblyGroup);
+            });
+
+            if (renderedTrees.length === 0) {
+                container.innerHTML = '<div class="empty-message">Seçilen kategori veya arama kriterine uygun ürün bulunamadı.</div>';
+            }
+
+            updateSummaryCards(renderedTrees);
+        }
+
+        function getCategoryFilteredChildren(children) {
+            if (selectedCategoryName === 'ALL') return children;
+
+            return children.filter(child => {
+                if (!Array.isArray(child.categories)) return false;
+                return child.categories.includes(selectedCategoryName);
+            });
+        }
+
+        function getFilteredChildren(tree, children) {
+            let result = getCategoryFilteredChildren(children);
+
+            if (!searchTerm) return result;
+
+            return result.filter(child => {
+                const nameMatch = String(child.name || '').toLowerCase().includes(searchTerm);
+                const categoryMatch = Array.isArray(child.categories)
+                    ? child.categories.some(cat => String(cat).toLowerCase().includes(searchTerm))
+                    : false;
+
+                return nameMatch || categoryMatch;
+            });
+        }
+
+        function isMasterMatchingSearch(tree) {
+            if (!searchTerm) return false;
+            return String(tree.treeName || '').toLowerCase().includes(searchTerm);
+        }
+
+        async function increaseQuantity(parentProductId, childProductId, currentQuantity) {
+            const newQuantity = Number(currentQuantity) + 1;
+            await updateQuantity(parentProductId, childProductId, newQuantity);
+        }
+
+        async function decreaseQuantity(parentProductId, childProductId, currentQuantity) {
+            const newQuantity = Number(currentQuantity) - 1;
+
+            if (newQuantity < 1) {
+                showToast('Miktar 1’den küçük olamaz.', 'error');
+                return;
+            }
+
+            await updateQuantity(parentProductId, childProductId, newQuantity);
+        }
+
+        async function updateQuantity(parentProductId, childProductId, newQuantity) {
+            if (isUpdatingQuantity) return;
+
+            if (!childProductId || childProductId === 0) {
+                showToast('Alt ürün ID bilgisi bulunamadı. Backend response içine child id eklenmeli.', 'error');
+                return;
+            }
+
+            isUpdatingQuantity = true;
+            setQuantityButtonsDisabled(true);
+
+            try {
+                const response = await fetch(UPDATE_QUANTITY_API_URL, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        parentProductId: parentProductId,
+                        childProductId: childProductId,
+                        newQuantity: newQuantity
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Miktar güncellenemedi.');
+                }
+
+                showToast('Miktar güncellendi. Roll-up maliyet yeniden hesaplandı.', 'success');
+                await loadAllData();
+            } catch (error) {
+                console.error('Miktar güncellenirken hata oluştu:', error);
+                showToast('Miktar güncellenirken hata oluştu. Endpointi kontrol et.', 'error');
+            } finally {
+                isUpdatingQuantity = false;
+                setQuantityButtonsDisabled(false);
+            }
+        }
+
+        async function addBomRelation() {
+            const parentProductId = Number(document.getElementById('bomParentProduct').value);
+            const childProductId = Number(document.getElementById('bomChildProduct').value);
+            const quantity = Number(document.getElementById('bomQuantity').value);
+
+            if (!parentProductId || !childProductId || !quantity) {
+                showToast('Parent, child ve quantity alanları zorunludur.', 'error');
+                return;
+            }
+
+            if (parentProductId === childProductId) {
+                showToast('Bir ürün kendisinin alt bileşeni olamaz.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(ADD_BOM_RELATION_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        parentProductId,
+                        childProductId,
+                        quantity
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'BOM ilişkisi eklenemedi.');
+                }
+
+                showToast('Alt bileşen ürün ağacına eklendi.', 'success');
+                await loadAllData();
+            } catch (error) {
+                console.error(error);
+                showToast('BOM ilişkisi eklenemedi. Aynı ilişki zaten var olabilir.', 'error');
+            }
+        }
+
+        async function deleteBomRelation(parentProductId, childProductId) {
+            if (!confirm('Bu alt bileşen ilişkisini silmek istiyor musun?')) return;
+
+            try {
+                const url = `${DELETE_BOM_RELATION_API_URL}?parentProductId=${parentProductId}&childProductId=${childProductId}`;
+
+                const response = await fetch(url, { method: 'DELETE' });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'İlişki silinemedi.');
+                }
+
+                showToast('Alt bileşen ilişkisi silindi. Maliyet yeniden hesaplandı.', 'success');
+                await loadAllData();
+            } catch (error) {
+                console.error(error);
+                showToast('İlişki silinirken hata oluştu.', 'error');
+            }
+        }
+
+        async function createProduct() {
+            const productName = document.getElementById('newProductName').value.trim();
+            const price = Number(document.getElementById('newProductPrice').value || 0);
+            const minStokValue = Number(document.getElementById('newProductMinStock').value || 0);
+            const sttDateValue = document.getElementById('newProductSttDate').value;
+            const imageUrl = document.getElementById('newProductImageUrl').value.trim();
+            const categoryIds = getSelectedNumbers('newProductCategories');
+
+            if (!productName) {
+                showToast('Ürün adı zorunludur.', 'error');
+                return;
+            }
+
+            const body = {
+                productName: productName,
+                price: price,
+                stt_Date: sttDateValue ? new Date(sttDateValue).toISOString() : new Date().toISOString(),
+                minStokValue: minStokValue,
+                imageUrl: imageUrl,
+                categoryIds: categoryIds
+            };
+
+            try {
+                const response = await fetch(PRODUCTS_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Ürün eklenemedi.');
+                }
+
+                showToast('Yeni ürün başarıyla eklendi.', 'success');
+                clearCreateProductForm();
+                await loadAllData();
+            } catch (error) {
+                console.error(error);
+                showToast('Ürün eklenirken hata oluştu.', 'error');
+            }
+        }
+
+        function clearCreateProductForm() {
+            document.getElementById('newProductName').value = '';
+            document.getElementById('newProductPrice').value = '';
+            document.getElementById('newProductMinStock').value = '';
+            document.getElementById('newProductImageUrl').value = '';
+            document.getElementById('newProductImageFile').value = '';
+            document.getElementById('newProductImagePreview').style.display = 'none';
+            setDefaultDate();
+
+            const select = document.getElementById('newProductCategories');
+            [...select.options].forEach(opt => opt.selected = false);
+        }
+
+        function renderProductListForManagement() {
+            const list = document.getElementById('productManageList');
+            if (!list) return;
+
+            const query = String(document.getElementById('productListSearch')?.value || '').toLowerCase();
+
+            const filtered = allProducts.filter(product => {
+                const name = getProductName(product).toLowerCase();
+                return name.includes(query);
+            });
+
+            if (filtered.length === 0) {
+                list.innerHTML = '<div class="list-item"><div class="list-item-title">Ürün bulunamadı</div></div>';
+                return;
+            }
+
+            list.innerHTML = filtered.map(product => {
+                const id = getProductId(product);
+                const name = getProductName(product);
+                const price = getProductPrice(product);
+
+                return `
+                        <div class="list-item ${selectedProductForEdit && getProductId(selectedProductForEdit) === id ? 'active' : ''}" onclick="selectProductForEdit(${id})">
+                            <div class="list-item-title">${escapeHtml(name)}</div>
+                            <div class="list-item-meta">ID: ${id} | Fiyat: ${formatCurrency(price)} TL</div>
+                        </div>
+                    `;
+            }).join('');
+        }
+
+        function selectProductForEdit(productId) {
+            const product = allProducts.find(p => getProductId(p) === productId);
+
+            if (!product) {
+                showToast('Ürün bulunamadı.', 'error');
+                return;
+            }
+
+            selectedProductForEdit = product;
+
+            document.getElementById('editProductId').value = getProductId(product);
+            document.getElementById('editProductName').value = getProductName(product);
+            document.getElementById('editProductPrice').value = getProductPrice(product);
+            document.getElementById('editProductMinStock').value = product.minStokValue ?? product.minStockValue ?? 0;
+            document.getElementById('editProductImageUrl').value = product.imageUrl ?? product.ImageUrl ?? '';
+
+            const date = product.stt_Date ?? product.stT_Date ?? product.sttDate ?? product.Stt_Date;
+            document.getElementById('editProductSttDate').value = toDateTimeLocalValue(date);
+
+            const img = document.getElementById('editProductImagePreview');
+            const src = getImageSource(product.imageUrl ?? product.ImageUrl);
+            img.src = src;
+            img.style.display = src ? 'block' : 'none';
+
+            setSelectedCategoriesInSelect('editProductCategories', product);
+
+            renderProductListForManagement();
+        }
+
+        async function updateSelectedProduct() {
+            if (!selectedProductForEdit) {
+                showToast('Önce listeden ürün seç.', 'error');
+                return;
+            }
+
+            const id = Number(document.getElementById('editProductId').value);
+            const productName = document.getElementById('editProductName').value.trim();
+
+            if (!productName) {
+                showToast('Ürün adı boş olamaz.', 'error');
+                return;
+            }
+
+            const body = {
+                productName: productName,
+                price: Number(document.getElementById('editProductPrice').value || 0),
+                stt_Date: document.getElementById('editProductSttDate').value
+                    ? new Date(document.getElementById('editProductSttDate').value).toISOString()
+                    : new Date().toISOString(),
+                minStokValue: Number(document.getElementById('editProductMinStock').value || 0),
+                imageUrl: document.getElementById('editProductImageUrl').value.trim(),
+                categoryIds: getSelectedNumbers('editProductCategories')
+            };
+
+            try {
+                const response = await fetch(`${PRODUCTS_API_URL}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Ürün güncellenemedi.');
+                }
+
+                showToast('Ürün güncellendi.', 'success');
+                selectedProductForEdit = null;
+                await loadAllData();
+            } catch (error) {
+                console.error(error);
+                showToast('Ürün güncellenirken hata oluştu.', 'error');
+            }
+        }
+
+        async function deleteSelectedProduct() {
+            if (!selectedProductForEdit) {
+                showToast('Önce listeden ürün seç.', 'error');
+                return;
+            }
+
+            const id = getProductId(selectedProductForEdit);
+
+            if (!confirm(`ID ${id} ürününü silmek istiyor musun? Ürün ağaçta kullanılıyorsa backend hata döndürebilir.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${PRODUCTS_API_URL}/${id}`, { method: 'DELETE' });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Ürün silinemedi.');
+                }
+
+                showToast('Ürün silindi.', 'success');
+                selectedProductForEdit = null;
+                clearEditProductForm();
+                await loadAllData();
+            } catch (error) {
+                console.error(error);
+                showToast('Ürün silinemedi. Ürün, ürün ağacında kullanılıyor olabilir.', 'error');
+            }
+        }
+
+        function clearEditProductForm() {
+            document.getElementById('editProductId').value = '';
+            document.getElementById('editProductName').value = '';
+            document.getElementById('editProductPrice').value = '';
+            document.getElementById('editProductMinStock').value = '';
+            document.getElementById('editProductSttDate').value = '';
+            document.getElementById('editProductImageUrl').value = '';
+            document.getElementById('editProductImageFile').value = '';
+            document.getElementById('editProductImagePreview').style.display = 'none';
+        }
+
+        async function createCategory() {
+            const name = document.getElementById('newCategoryName').value.trim();
+
+            if (!name) {
+                showToast('Kategori adı boş olamaz.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(CATEGORY_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Kategori eklenemedi.');
+                }
+
+                showToast('Kategori eklendi.', 'success');
+                document.getElementById('newCategoryName').value = '';
+                await loadAllData();
+            } catch (error) {
+                console.error(error);
+                showToast('Kategori eklenirken hata oluştu.', 'error');
+            }
+        }
+
+        async function updateCategoryName() {
+            const id = Number(document.getElementById('editCategorySelect').value);
+            const name = document.getElementById('editCategoryName').value.trim();
+
+            if (!id || !name) {
+                showToast('Kategori ve yeni isim zorunludur.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(UPDATE_CATEGORY_NAME_API_URL, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, name })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Kategori güncellenemedi.');
+                }
+
+                showToast('Kategori adı güncellendi.', 'success');
+                document.getElementById('editCategoryName').value = '';
+                await loadAllData();
+            } catch (error) {
+                console.error(error);
+                showToast('Kategori güncellenirken hata oluştu. DTO alanları backend ile uyuşmayabilir.', 'error');
+            }
+        }
+
+        async function deleteCategory() {
+            const id = Number(document.getElementById('editCategorySelect').value);
+
+            if (!id) {
+                showToast('Silmek için kategori seç.', 'error');
+                return;
+            }
+
+            if (!confirm('Bu kategoriyi silmek istiyor musun? Kullanılan kategori ise backend hata döndürebilir.')) return;
+
+            try {
+                const response = await fetch(`${CATEGORY_API_URL}/${id}`, { method: 'DELETE' });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Kategori silinemedi.');
+                }
+
+                showToast('Kategori silindi.', 'success');
+                await loadAllData();
+            } catch (error) {
+                console.error(error);
+                showToast('Kategori silinemedi. Ürünlerde kullanılıyor olabilir.', 'error');
+            }
+        }
+
+        function fillAllSelects() {
+            fillProductSelect('bomParentProduct');
+            fillProductSelect('bomChildProduct');
+            fillCategorySelect('newProductCategories', true);
+            fillCategorySelect('editProductCategories', true);
+            fillCategorySelect('editCategorySelect', false);
+            updateSummaryProductCategoryCount();
+        }
+
+        function fillProductSelect(selectId) {
+            const select = document.getElementById(selectId);
+            if (!select) return;
+
+            select.innerHTML = '';
+
+            allProducts.forEach(product => {
+                const option = document.createElement('option');
+                option.value = getProductId(product);
+                option.textContent = `${getProductId(product)} - ${getProductName(product)}`;
+                select.appendChild(option);
+            });
+        }
+
+        function fillCategorySelect(selectId, multiple) {
+            const select = document.getElementById(selectId);
+            if (!select) return;
+
+            select.innerHTML = '';
+
+            if (!multiple) {
+                const empty = document.createElement('option');
+                empty.value = '';
+                empty.textContent = 'Kategori seç';
+                select.appendChild(empty);
+            }
+
+            allCategories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                select.appendChild(option);
+            });
+        }
+
+        function setSelectedCategoriesInSelect(selectId, product) {
+            const select = document.getElementById(selectId);
+            if (!select) return;
+
+            const productCategories = product.categories ?? product.Categories ?? [];
+            const productCategoryIds = product.categoryIds ?? product.CategoryIds ?? [];
+
+            [...select.options].forEach(option => {
+                const id = Number(option.value);
+                const name = option.textContent;
+
+                option.selected =
+                    productCategoryIds.includes(id) ||
+                    productCategories.some(cat => {
+                        if (typeof cat === 'string') return cat === name;
+                        return cat.id === id || cat.name === name;
+                    });
+            });
+        }
+
+        function getSelectedNumbers(selectId) {
+            const select = document.getElementById(selectId);
+            if (!select) return [];
+
+            return [...select.selectedOptions]
+                .map(option => Number(option.value))
+                .filter(value => !Number.isNaN(value) && value > 0);
+        }
+
+        async function handleImageFileChange(event, targetTextareaId, previewImgId) {
+            const file = event.target.files[0];
+
+            if (!file) return;
+
+            const base64 = await fileToBase64(file);
+
+            document.getElementById(targetTextareaId).value = base64;
+
+            const img = document.getElementById(previewImgId);
+            img.src = base64;
+            img.style.display = 'block';
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function setQuantityButtonsDisabled(disabled) {
+            document.querySelectorAll('.quantity-button').forEach(button => {
+                button.disabled = disabled;
+            });
+        }
+
+        function updateSummaryCards(renderedTrees) {
+            const masterCount = renderedTrees.length;
+            const childCount = renderedTrees.reduce((sum, tree) => sum + ((tree.products || []).length), 0);
+            const totalCost = renderedTrees.reduce((sum, tree) => sum + Number(tree.totalPrice || 0), 0);
+
+            document.getElementById('summaryMasterCount').textContent = masterCount;
+            document.getElementById('summaryChildCount').textContent = childCount;
+            document.getElementById('summaryTotalCost').textContent = `${formatCurrency(totalCost)} TL`;
+            updateSummaryProductCategoryCount();
+        }
+
+        function updateSummaryProductCategoryCount() {
+            const element = document.getElementById('summaryProductCategoryCount');
+            if (element) {
+                element.textContent = `${allProducts.length} / ${allCategories.length}`;
+            }
+        }
+
+        function openProductModal(product) {
+            document.getElementById('modalTitle').textContent = product.name || 'Ürün Detayı';
+
+            const categories = Array.isArray(product.categories) && product.categories.length > 0
+                ? product.categories.join(', ')
+                : '-';
+
+            let breakdownHtml = '';
+
+            if (product.type === 'Ana Montaj' && Array.isArray(product.children) && product.children.length > 0) {
+                breakdownHtml = `
+                        <h4 style="margin: 18px 0 8px 0;">Maliyet Kırılımı</h4>
+                        <div class="breakdown-list">
+                            <div class="breakdown-item breakdown-head">
+                                <div>Alt Bileşen</div>
+                                <div>Birim Fiyat</div>
+                                <div>Adet</div>
+                                <div>Toplam</div>
+                            </div>
+                            ${product.children.map(child => {
+                    const qty = Number(child.quantity || 0);
+                    const price = Number(child.price || 0);
+                    const total = qty * price;
+
+                    return `
+                                    <div class="breakdown-item">
+                                        <div>${escapeHtml(child.name)}</div>
+                                        <div>${formatCurrency(price)} TL</div>
+                                        <div>${qty}</div>
+                                        <div>${formatCurrency(total)} TL</div>
+                                    </div>
+                                `;
+                }).join('')}
+                        </div>
+                    `;
+            }
+
+            document.getElementById('modalBody').innerHTML = `
+                    <img src="${getImageSource(product.imageUrl)}" alt="${escapeHtml(product.name)}">
+
+                    <div class="detail-row">
+                        <strong>Tip</strong>
+                        <span>${escapeHtml(product.type)}</span>
+                    </div>
+
+                    <div class="detail-row">
+                        <strong>Ürün ID</strong>
+                        <span>${product.id}</span>
+                    </div>
+
+                    <div class="detail-row">
+                        <strong>Ürün Adı</strong>
+                        <span>${escapeHtml(product.name)}</span>
+                    </div>
+
+                    <div class="detail-row">
+                        <strong>Birim / Toplam Fiyat</strong>
+                        <span>${formatCurrency(product.price)} TL</span>
+                    </div>
+
+                    <div class="detail-row">
+                        <strong>Adet</strong>
+                        <span>${product.quantity}</span>
+                    </div>
+
+                    <div class="detail-row">
+                        <strong>Hesaplanan Toplam</strong>
+                        <span>${formatCurrency(product.total)} TL</span>
+                    </div>
+
+                    <div class="detail-row">
+                        <strong>Min Stok</strong>
+                        <span>${product.minStock}</span>
+                    </div>
+
+                    <div class="detail-row">
+                        <strong>Kategoriler</strong>
+                        <span>${escapeHtml(categories)}</span>
+                    </div>
+
+                    ${breakdownHtml}
+                `;
+
+            document.getElementById('detailModal').style.display = 'flex';
+        }
+
+        function closeProductModal(event) {
+            if (event && event.target.id !== 'detailModal') return;
+            document.getElementById('detailModal').style.display = 'none';
+        }
+
+        function getChildProductId(child) {
+            return child.id
+                ?? child.productId
+                ?? child.productItemId
+                ?? child.childProductId
+                ?? 0;
+        }
+
+        function getProductId(product) {
+            return product.id ?? product.Id ?? 0;
+        }
+
+        function getProductName(product) {
+            return product.productName ?? product.ProductName ?? product.name ?? product.Name ?? '';
+        }
+
+        function getProductPrice(product) {
+            return Number(product.price ?? product.Price ?? 0);
+        }
+
+        function getImageSource(imageUrl) {
+            if (!imageUrl) return 'https://via.placeholder.com/220x120?text=Resim+Yok';
+
+            if (String(imageUrl).startsWith('data:image')) return imageUrl;
+            if (String(imageUrl).startsWith('http')) return imageUrl;
+
+            return `${BASE_API_URL.replace('/api', '')}${imageUrl}`;
+        }
+
+        function formatCurrency(value) {
+            const numberValue = Number(value || 0);
+
+            return numberValue.toLocaleString('tr-TR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.style.display = 'block';
+
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3200);
+        }
+
+        function escapeHtml(value) {
+            if (value === null || value === undefined) return '';
+
+            return String(value)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function safeJson(value) {
+            return JSON.stringify(value)
+                .replaceAll("'", "&#039;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;");
+        }
+
+        function toDateTimeLocalValue(value) {
+            if (!value) return '';
+
+            const date = new Date(value);
+
+            if (Number.isNaN(date.getTime())) return '';
+
+            date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+
+            return date.toISOString().slice(0, 16);
+        }
+    </script>
+</body>
+</html>
+```

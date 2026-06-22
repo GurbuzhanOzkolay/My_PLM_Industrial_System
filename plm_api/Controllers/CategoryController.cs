@@ -20,10 +20,18 @@ namespace plm_api.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            var categories = _context.Categories.ToList();
-            return Ok(categories);
-        }
+            var categories = _context.Categories
+                .AsNoTracking()
+                .Select(x => new
+                {
+                    x.Id,
+                    x.Name,
+                    x.ParentId
+                })
+                .ToList();
 
+            return Ok(categories);
+        } 
         // POST: kategori ekle
         [HttpPost]
         public IActionResult Add([FromBody] Category category)
