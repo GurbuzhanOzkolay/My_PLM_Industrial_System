@@ -188,6 +188,12 @@
             margin-bottom: 24px;
         }
 
+        .status-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
         .button {
             border: none;
             border-radius: 8px;
@@ -334,7 +340,7 @@
         .tree-wrapper {
             display: flex;
             flex-direction: column;
-            gap: 66px;
+            gap: 38px;
             align-items: center;
             margin-bottom: 50px;
         }
@@ -354,9 +360,13 @@
                 height: 24px;
                 background: var(--border);
                 position: absolute;
-                top: 270px;
+                top: 285px;
                 left: 50%;
                 transform: translateX(-50%);
+            }
+
+            .assembly-group.collapsed::after {
+                display: none;
             }
 
         .children-grid {
@@ -386,7 +396,13 @@
 
         .master-node {
             border-top: 6px solid var(--primary);
+            cursor: pointer;
         }
+
+            .master-node.expanded {
+                border-top-color: var(--success);
+                box-shadow: 0 12px 28px rgba(5, 150, 105, 0.14);
+            }
 
         .child-node {
             border-top: 6px solid var(--secondary);
@@ -443,6 +459,16 @@
             font-size: 11px;
             color: var(--muted);
             margin-top: 5px;
+        }
+
+        .expand-hint {
+            margin-top: 10px;
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--primary);
+            background: var(--primary-light);
+            border-radius: 8px;
+            padding: 8px;
         }
 
         .category-list {
@@ -552,6 +578,15 @@
             color: var(--muted);
             background: #ffffff;
             border: 1px dashed var(--border);
+        }
+
+        .empty-child-box {
+            background: #ffffff;
+            border: 1px dashed var(--border);
+            color: var(--muted);
+            padding: 16px;
+            border-radius: 10px;
+            font-size: 13px;
         }
 
         .error-box {
@@ -791,7 +826,7 @@
                 <div class="toolbar-top">
                     <div>
                         <div class="panel-title">Kategori Filtresi ve Arama</div>
-                        <div class="panel-subtitle">Kategoriler backend API üzerinden dinamik olarak yüklenir.</div>
+                        <div class="panel-subtitle">İlk ekranda sadece ana ürünler görünür. Ana ürüne tıklayınca alt ürünler açılır.</div>
                     </div>
 
                     <div class="search-box">
@@ -814,7 +849,7 @@
                 <div class="form-grid">
                     <div class="form-field">
                         <label>Ürün Adı</label>
-                        <input id="newProductName" type="text" placeholder="Örn: Burç">
+                        <input id="newProductName" type="text" placeholder="Örn: Z Rot">
                     </div>
 
                     <div class="form-field">
@@ -975,7 +1010,12 @@
 
         <div class="status-bar">
             <div id="statusText">Veriler backend sunucusundan yükleniyor...</div>
-            <button class="button button-success" onclick="loadAllData()">Verileri Yenile</button>
+
+            <div class="status-actions">
+                <button class="button button-secondary" onclick="expandAllTrees()">Tümünü Aç</button>
+                <button class="button button-secondary" onclick="collapseAllTrees()">Tümünü Kapat</button>
+                <button class="button button-success" onclick="loadAllData()">Verileri Yenile</button>
+            </div>
         </div>
 
         <div id="treeContainer" class="tree-wrapper">
@@ -1013,6 +1053,7 @@
         let searchTerm = '';
         let isUpdatingQuantity = false;
         let selectedProductForEdit = null;
+        let expandedTreeIds = new Set();
 
         document.addEventListener('DOMContentLoaded', () => {
             loadAllData();
@@ -1109,6 +1150,31 @@
             button.classList.add('active');
         }
 
+        function toggleTree(treeId) {
+            const numericTreeId = Number(treeId);
+
+            if (expandedTreeIds.has(numericTreeId)) {
+                expandedTreeIds.delete(numericTreeId);
+            } else {
+                expandedTreeIds.add(numericTreeId);
+            }
+
+            renderTree(allTreeData);
+        }
+
+        function expandAllTrees() {
+            allTreeData.forEach(tree => {
+                expandedTreeIds.add(Number(tree.treeId));
+            });
+
+            renderTree(allTreeData);
+        }
+
+        function collapseAllTrees() {
+            expandedTreeIds.clear();
+            renderTree(allTreeData);
+        }
+
         function renderCategoryButtons() {
             const categoryContainer = document.getElementById('categoryButtons');
             if (!categoryContainer) return;
@@ -1167,19 +1233,32 @@
                 const treeForSummary = { ...tree, products: visibleChildren };
                 renderedTrees.push(treeForSummary);
 
+                const treeId = Number(tree.treeId);
+                const isExpanded = expandedTreeIds.has(treeId) || searchTerm.length > 0;
+
                 const assemblyGroup = document.createElement('div');
-                assemblyGroup.className = 'assembly-group';
+                assemblyGroup.className = isExpanded ? 'assembly-group' : 'assembly-group collapsed';
+
+                const childCount = visibleChildren.length;
 
                 const masterHtml = `
-                        <div class="plm-card master-node">
+                        <div class="plm-card master-node ${isExpanded ? 'expanded' : ''}" onclick="toggleTree(${tree.treeId})">
                             <div class="badge">ANA MONTAJ (ID: ${tree.treeId})</div>
+
                             <img src="${getImageSource(tree.treeImageUrl)}" alt="${escapeHtml(tree.treeName)}">
+
                             <h3>${escapeHtml(tree.treeName)}</h3>
+
                             <div class="price-tag">${formatCurrency(tree.totalPrice)} TL</div>
                             <div class="small-info">Min Stok: ${tree.minStokValue ?? '-'}</div>
+                            <div class="small-info">Alt Bileşen Sayısı: ${childCount}</div>
+
+                            <div class="expand-hint">
+                                ${isExpanded ? 'Alt ürünleri gizle ▲' : `Alt ürünleri göster (${childCount}) ▼`}
+                            </div>
 
                             <div class="card-actions">
-                                <button class="detail-button" onclick='openProductModal(${safeJson({
+                                <button class="detail-button" onclick='event.stopPropagation(); openProductModal(${safeJson({
                     type: "Ana Montaj",
                     id: tree.treeId,
                     name: tree.treeName,
@@ -1197,74 +1276,86 @@
                         </div>
                     `;
 
-                let childrenHtml = '<div class="children-grid">';
+                let childrenHtml = '';
 
-                visibleChildren.forEach(child => {
-                    const childProductId = getChildProductId(child);
-                    const quantity = Number(child.quantity || 0);
-                    const unitPrice = Number(child.price || 0);
-                    const childTotalPrice = unitPrice * quantity;
-
-                    const categoriesHtml = Array.isArray(child.categories)
-                        ? child.categories.map(cat => `<span class="category-span">${escapeHtml(cat)}</span>`).join('')
-                        : '';
-
-                    childrenHtml += `
-                            <div class="plm-card child-node">
-                                <div class="badge">ALT BİLEŞEN</div>
-
-                                <img src="${getImageSource(child.imageUrl)}" alt="${escapeHtml(child.name)}">
-
-                                <h3>${escapeHtml(child.name)}</h3>
-
-                                <div class="small-info">Birim Fiyat: ${formatCurrency(unitPrice)} TL</div>
-                                <div class="price-tag">Toplam: ${formatCurrency(childTotalPrice)} TL</div>
-
-                                <div class="quantity-panel">
-                                    <button
-                                        class="quantity-button minus"
-                                        onclick="decreaseQuantity(${tree.treeId}, ${childProductId}, ${quantity})"
-                                        ${quantity <= 1 ? 'disabled' : ''}
-                                    >
-                                        -
-                                    </button>
-
-                                    <span class="quantity-value">${quantity}</span>
-
-                                    <button
-                                        class="quantity-button"
-                                        onclick="increaseQuantity(${tree.treeId}, ${childProductId}, ${quantity})"
-                                    >
-                                        +
-                                    </button>
+                if (isExpanded) {
+                    if (visibleChildren.length === 0) {
+                        childrenHtml = `
+                                <div class="empty-child-box">
+                                    Bu ana ürüne ait alt ürün bulunamadı.
                                 </div>
+                            `;
+                    } else {
+                        childrenHtml = '<div class="children-grid">';
 
-                                <div class="category-list">${categoriesHtml}</div>
+                        visibleChildren.forEach(child => {
+                            const childProductId = getChildProductId(child);
+                            const quantity = Number(child.quantity || 0);
+                            const unitPrice = Number(child.price || 0);
+                            const childTotalPrice = unitPrice * quantity;
 
-                                <div class="card-actions">
-                                    <button class="detail-button" onclick='openProductModal(${safeJson({
-                        type: "Alt Bileşen",
-                        id: childProductId,
-                        name: child.name,
-                        price: unitPrice,
-                        quantity: quantity,
-                        total: childTotalPrice,
-                        minStock: child.minStokValue ?? "-",
-                        imageUrl: child.imageUrl,
-                        categories: child.categories || []
-                    })})'>
-                                        Detay
-                                    </button>
+                            const categoriesHtml = Array.isArray(child.categories)
+                                ? child.categories.map(cat => `<span class="category-span">${escapeHtml(cat)}</span>`).join('')
+                                : '';
 
-                                    <button class="detail-button" style="color:#dc2626;" onclick="deleteBomRelation(${tree.treeId}, ${childProductId})">
-                                        İlişki Sil
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                });
+                            childrenHtml += `
+                                    <div class="plm-card child-node">
+                                        <div class="badge">ALT BİLEŞEN</div>
 
-                childrenHtml += '</div>';
+                                        <img src="${getImageSource(child.imageUrl)}" alt="${escapeHtml(child.name)}">
+
+                                        <h3>${escapeHtml(child.name)}</h3>
+
+                                        <div class="small-info">Birim Fiyat: ${formatCurrency(unitPrice)} TL</div>
+                                        <div class="price-tag">Toplam: ${formatCurrency(childTotalPrice)} TL</div>
+
+                                        <div class="quantity-panel">
+                                            <button
+                                                class="quantity-button minus"
+                                                onclick="decreaseQuantity(${tree.treeId}, ${childProductId}, ${quantity})"
+                                                ${quantity <= 1 ? 'disabled' : ''}
+                                            >
+                                                -
+                                            </button>
+
+                                            <span class="quantity-value">${quantity}</span>
+
+                                            <button
+                                                class="quantity-button"
+                                                onclick="increaseQuantity(${tree.treeId}, ${childProductId}, ${quantity})"
+                                            >
+                                                +
+                                            </button>
+                                        </div>
+
+                                        <div class="category-list">${categoriesHtml}</div>
+
+                                        <div class="card-actions">
+                                            <button class="detail-button" onclick='openProductModal(${safeJson({
+                                type: "Alt Bileşen",
+                                id: childProductId,
+                                name: child.name,
+                                price: unitPrice,
+                                quantity: quantity,
+                                total: childTotalPrice,
+                                minStock: child.minStokValue ?? "-",
+                                imageUrl: child.imageUrl,
+                                categories: child.categories || []
+                            })})'>
+                                                Detay
+                                            </button>
+
+                                            <button class="detail-button" style="color:#dc2626;" onclick="deleteBomRelation(${tree.treeId}, ${childProductId})">
+                                                İlişki Sil
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
+                        });
+
+                        childrenHtml += '</div>';
+                    }
+                }
 
                 assemblyGroup.innerHTML = masterHtml + childrenHtml;
                 container.appendChild(assemblyGroup);
@@ -1392,6 +1483,9 @@
                 }
 
                 showToast('Alt bileşen ürün ağacına eklendi.', 'success');
+
+                expandedTreeIds.add(parentProductId);
+
                 await loadAllData();
             } catch (error) {
                 console.error(error);
@@ -1413,6 +1507,9 @@
                 }
 
                 showToast('Alt bileşen ilişkisi silindi. Maliyet yeniden hesaplandı.', 'success');
+
+                expandedTreeIds.add(parentProductId);
+
                 await loadAllData();
             } catch (error) {
                 console.error(error);
