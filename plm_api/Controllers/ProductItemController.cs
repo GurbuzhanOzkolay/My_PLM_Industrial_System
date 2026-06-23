@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using plm_api.Code;
 using plm_api.Dtos;
 using Spectre.Console;
 using System.ComponentModel.DataAnnotations;
@@ -80,7 +81,7 @@ namespace plm_api.Controllers
             if (!parentExists || !childExists)
                 return NotFound("Ana ürün veya alt ürün bulunamadı.");
 
-            var treeElement = new plm_api.ProductItem
+            var treeElement = new Code.ProductItem
             {
                 ParentProductId = request.ParentProductId,
                 ChildProductId = request.ChildProductId,

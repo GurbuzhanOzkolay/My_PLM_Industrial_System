@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net.Http.Headers;
-using plm_api;
+using plm_api.Code;
 namespace plm_api.Controllers
 {
     [Route("api/[controller]")]

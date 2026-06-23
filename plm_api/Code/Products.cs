@@ -1,4 +1,4 @@
-﻿namespace plm_api
+﻿namespace plm_api.Code
 {
     public class Products
     {                            

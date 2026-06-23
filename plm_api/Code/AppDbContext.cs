@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace plm_api
+namespace plm_api.Code
 {
     public class AppDbContext : DbContext
     {
